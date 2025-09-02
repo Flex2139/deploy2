@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - mongo
+    # если бэкенд при старте пытается прочитать файлы из frontend (seed), монтируем фронт-источники:
+    volumes:
+      - ./frontend:/app/frontend:ro
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
